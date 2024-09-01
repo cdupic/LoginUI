@@ -1,7 +1,8 @@
-import pathlib
+from dotenv import load_dotenv
 from src.app import LoginGUI
 
 
 if __name__ == '__main__':
-	app = LoginGUI(root_path=str(pathlib.Path(__file__).parent.resolve()))
+	load_dotenv()
+	app = LoginGUI()
 	app.mainloop()
