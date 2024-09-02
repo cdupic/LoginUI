@@ -15,6 +15,7 @@ class LoginGUI(ctk.CTk):
 		self.signin_button = None
 		self.password_entry = None
 		self.username_entry = None
+		self.message_box_exists = False
 
 		self.title('Login')
 		self.geometry("450x700")
@@ -61,36 +62,38 @@ class LoginGUI(ctk.CTk):
 		self.username_entry.grid(column=0, row=0, sticky='nsew', pady=30, padx=20)
 
 		self.password_entry = ctk.CTkEntry(self.widget_frame, fg_color='#4C5C68', bg_color='#C5BAAF',
-										   placeholder_text='password', corner_radius=0, justify='center')
+										   placeholder_text='password', corner_radius=0, justify='center', show='*')
 		self.password_entry.grid(column=0, row=1, sticky='nsew', pady=30, padx=20)
 
 		self.signin_button = ctk.CTkButton(self.button_frame, text='Sign In', bg_color='#429EA6', fg_color='#AD91A3',
-										   border_color='#EB9486', corner_radius=0, font=self.font)
+										   border_color='#EB9486', corner_radius=0, font=self.font, command=self.signin)
 		self.signin_button.grid(column=1, row=0, sticky='nsew', padx=20, pady=20)
-		self.signin_button.bind('<Button-1>', self.signin)
 
 		self.signup_button = ctk.CTkButton(self.button_frame, text='Sign Up', bg_color='#429EA6', fg_color='#AD91A3',
-										   border_color='#EB9486', corner_radius=0, font=self.font)
+										   border_color='#EB9486', corner_radius=0, font=self.font, command=self.signup)
 		self.signup_button.grid(column=0, row=0, sticky='nsew', padx=20, pady=20)
-		self.signup_button.bind('<Button-1>', self.signup)
 
 
-	def signin(self, event=None):
+	def signin(self):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
 		auth_user = authenticate_user(username, password)
 		if not auth_user:
 			self.clear_entries()
-		# TODO : add a way to not have mutliple message boxes
-		MessageBox(auth_user)
+		if not self.message_box_exists:
+			self.message_box_exists = True
+			MessageBox(auth_user, self)
 
-	def signup(self, event=None):
+	def signup(self):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
 		auth_add = add_user(username, password)
 		if 'taken' in auth_add:
 			self.clear_entries()
-		MessageBox(auth_add)
+
+		if not self.message_box_exists:
+			self.message_box_exists = True
+			MessageBox(auth_add, self)
 
 
 	def clear_entries(self):
@@ -101,36 +104,36 @@ class LoginGUI(ctk.CTk):
 
 class MessageBox(ctk.CTkToplevel):
 
-	def __init__(self, message_str: str):
+	def __init__(self, message_tuple: tuple, main_window):
 		super().__init__()
 
 		self.title("Message")
-		self.geometry("200x100")
+		self.geometry("250x100")
 		self.resizable(False, False)
+		self.grab_set()
 
-		self.label = ctk.CTkLabel(self, text=message_str)
+		self.main_window = main_window
+
+		self.message_id = message_tuple[1]
+
+		self.label = ctk.CTkLabel(self, text=message_tuple[0])
 		self.label.pack(pady=10)
-		self.button = ctk.CTkButton(self, text="OK")
-		self.button.bind("<Button-1>", self.close_action)
 
+		self.button = ctk.CTkButton(self, text="OK", command=self.close_action)
 		self.button.pack(pady=10)
 
-
-	def close_action(self, event=None):
-		self.destroy()
-		# TODO : add a way to close the main window if the user is logged in
+		self.protocol("WM_DELETE_WINDOW", self.close_action)
 
 
 
+	def close_action(self):
+		if self.message_id:
+			self.main_window.destroy()
+		else:
+			self.main_window.clear_entries()
+			self.main_window.message_box_exists = False
 
-
-
-
-
-
-
-
-
-
-
-
+		try:
+			self.destroy()
+		except:
+			pass
