@@ -4,7 +4,6 @@ from src.authentification.password_encrypted import get_string_encrypted
 
 def add_user(username: str, password: str):
 	users_data = get_users_data()
-	print(1, password, 1)
 	if username in users_data.keys():
 		return f'{username} is already taken', 0
 	elif username == '' or password == '':
